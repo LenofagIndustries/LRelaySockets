@@ -2,6 +2,12 @@
 # LRelaySockets
 Integrate your Garry's Mod server with Discord
 
+### What this relay can do:
+1. [Connect](images/chatrelay.png) your Discord and game's chats
+2. [Send](images/console.png) console output to Discord and run console commands
+3. [Server status web API](images/statusapi.png)
+4. Lua API - make your own Discord commands
+
 ## Dependencies
 ### node.js
 - discord.js@13.6.0
@@ -15,19 +21,19 @@ Integrate your Garry's Mod server with Discord
 ## Installation
 1. [Clone](/archive/refs/heads/main.zip) this repository
 2. Install npm dependencies using `npm i`
-3. Drop `lrelaysockets` folder to your server's `garrysmod/addons` folder
-4. [Configure](#configuration) your installation
-5. Done!
+3. Install modules from [Dependencies](#garrys-mod) to `lua/bin`
+4. Drop `lrelaysockets` folder to your server's `garrysmod/addons` folder
+5. [Configure](#configuration) your installation
+6. Done!
 
 ## Configuration
 1. Open `config.js`
 2. Here you will need to set channel IDs, Discord token and an **LRELAY key**, which serves as a password, you can set it to anything!
-3. Install modules from [Dependencies](#garrys-mod) to `lua/bin`
-4. Open `addons/lrelaysockets/server/sv_config.lua`
-5. Change `socketPath`, which should look something like `ws://123.45.6.7:8556/relay`
-6. Change `token` to your **LRELAY key**, which you set earlier at `config.js` as `auth`
-7. Change `consoleAccess` to your Discord user ID, you can add additional user IDs
-8. (optional) Change `statusName` to whatever name you want for server status API
+3. Open `addons/lrelaysockets/server/sv_config.lua`
+4. Change `socketPath`, which should look something like `ws://123.45.6.7:8556/relay`
+5. Change `token` to your **LRELAY key**, which you set earlier at `config.js` as `auth`
+6. Change `consoleAccess` to your Discord user ID, you can add additional user IDs
+7. (optional) Change `statusName` to whatever name you want for server status API
 
 ## Credits
 * [Discordia](https://github.com/SinisterRectus/Discordia/) - Lua color convertation
