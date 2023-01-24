@@ -28,3 +28,8 @@ Integrate your Garry's Mod server with Discord
 6. Change `token` to your **LRELAY key**, which you set earlier at `config.js` as `auth`
 7. Change `consoleAccess` to your Discord user ID, you can add additional user IDs
 8. (optional) Change `statusName` to whatever name you want for server status API
+
+## Credits
+* [Discordia](https://github.com/SinisterRectus/Discordia/) - Lua color convertation
+* [Lenofag-2000](https://lenofag.ru)
+* [Aksyned](https://izbushechka.su) - inspired from his relay
