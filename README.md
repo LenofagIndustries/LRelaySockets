@@ -40,4 +40,5 @@ Integrate your Garry's Mod server with Discord
 * [Lenofag-2000](https://lenofag.ru)
 * [Aksyned](https://izbushechka.su) - inspired from his relay
 
-##### This relay is created specifically for **Sandbox** gamemode! You will need to modify it yourself to make it work better for DarkRP or TTT
+##### This relay is created specifically for **Sandbox** gamemode!
+##### You will need to modify it yourself to make it work better for DarkRP or TTT
