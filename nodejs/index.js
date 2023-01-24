@@ -97,7 +97,7 @@ app.listen(config.port, () => {
 
 dclient.on("messageCreate", (message) => {
     if(!message.author.bot && message.author != dclient.user && message.content) {
-        if(message.author.id && message.content == "LRELAY!!!ClearThisShit") return queue = [];
+        if(message.author.id == dclient.application.owner.id && message.content == "LRELAY!!!ClearThisShit") return queue = []; // This command will only be accessible for bot's owner (This will NOT work with teams!!!)
         switch(message.channel.id) {
             case config.channels.relay:
                 wssrelay.clients.forEach(client => {
