@@ -1,4 +1,6 @@
-[![Join my Discord server!](https://img.shields.io/badge/Discord-Working%20example-black?style=flat-square&logo=discord&logoColor=white)](https://gm.lenofag.ru/discord)
+![License](https://img.shields.io/github/license/gerrustalker/LRelaySockets?style=flat-square)
+![Open issues](https://img.shields.io/github/issues/gerrustalker/LRelaySockets?style=flat-square)
+[![Join my Discord server!](https://img.shields.io/badge/discord-working%20example-5865F2?style=flat-square&logo=discord&logoColor=white)](https://gm.lenofag.ru/discord)
 # LRelaySockets
 Integrate your Garry's Mod server with Discord
 
@@ -37,8 +39,9 @@ Integrate your Garry's Mod server with Discord
 
 ## Credits
 * [Discordia](https://github.com/SinisterRectus/Discordia/) - Lua color convertation
-* [Lenofag-2000](https://lenofag.ru)
+* [Lenofag-2000](https://lenofag.ru) (lenofag.ru?uwu=1#9927)
 * [Aksyned](https://izbushechka.su) - inspired from his relay
 
+#
 ##### This relay is created specifically for **Sandbox** gamemode!
 ##### You will need to modify it yourself to make it work better for DarkRP or TTT
