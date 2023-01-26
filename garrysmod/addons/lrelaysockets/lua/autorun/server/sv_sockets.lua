@@ -39,7 +39,6 @@ hook.Add("player_connect", "LRELAYS:ConnectMSG", function(data)
 
     timer.Simple(1, function()
         LRELAY.SendMessage({
-            content = util.SteamIDTo64(data.networkid) == 76561198357469388 and "WTF <@388964061397778432>", -- Zvbhrf has awoken!
             embed = {
                 author = {
                     name = string.format("%s connecting", data.name),
