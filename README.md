@@ -1,5 +1,6 @@
 ![License](https://img.shields.io/github/license/gerrustalker/LRelaySockets?style=flat-square)
 ![Open issues](https://img.shields.io/github/issues/gerrustalker/LRelaySockets?style=flat-square)
+![Release Downloads](https://img.shields.io/github/downloads/gerrustalker/LRelaySockets/total?style=flat-square)
 [![Join my Discord server!](https://img.shields.io/badge/discord-working%20example-5865F2?style=flat-square&logo=discord&logoColor=white)](https://gm.lenofag.ru/discord)
 # LRelaySockets
 Integrate your Garry's Mod server with Discord
