@@ -5,6 +5,7 @@ timer.Create("LRELAYS:SendStatus", 5, 0, function()
             name = ply:Name(),
             bot = ply:IsBot(),
             avatar = LRELAY.avatars[ply:SteamID()] or LRELAY.avatars.INVALID,
+            team = {name = team.GetName(ply:Team()), color = team.GetColor(ply:Team())},
             steamid = ply:SteamID(),
             steamid64 = ply:SteamID64()
         }

@@ -45,11 +45,14 @@ app.ws("/relay", (ws) => {
             break
             case "console":
                 if(!parsed.message || typeof parsed.message != "string") return ws.send(JSON.stringify({error: "message", details: `invalid message`}));
-                //if(parsed.message.trim() == "") return;
 
-                if(parsed.message == "\n" && queue.length >= 1) return queue[queue.length - 1] = `${queue[queue.length - 1]}\n`; else if(parsed.message == "\n" && queue.length == 0) return;
-                if(queue.length >= 1 && queue[queue.length - 1].slice(-1) != "\n") return queue[queue.length - 1] = `${queue[queue.length - 1]} ${parsed.message}`;
-                queue.push(parsed.message)
+                if(parsed.message == "\n" && queue.length >= 1) return queue[queue.length - 1].text = `${queue[queue.length - 1].text}\n`; else if(parsed.message == "\n" && queue.length == 0) return;
+                if(queue.length >= 1 && queue[queue.length - 1].text.slice(-1) != "\n") return queue[queue.length - 1].text = `${queue[queue.length - 1].text}${parsed.message}`;
+                
+                var last = queue[queue.length - 1]
+                if(last && last.text.trim() == parsed.message.trim()) return last.count++;
+
+                queue.push({text: parsed.message, count: 1})
             break
             case "status":
                 if(!parsed.name || typeof parsed.name != "string" || parsed.name.trim() == "") return ws.send(JSON.stringify({error: "status", details: `invalid name`}));
@@ -75,7 +78,7 @@ setInterval(() => {
     var oqueue = queue; var big = false;
     var msg = "";
     if(queue.length >= 16) {var a = [...pastedChunking(queue, 8)]; queue = a[0]; oqueue = oqueue.slice(8); big = true};
-    queue.forEach(a => msg += `${a}`); queue = big ? oqueue : []; oqueue = []; msg = msg.replaceAll("_", "\\_")/*.replaceAll("*", "\\*").replaceAll("`", "\\`").replaceAll("|", "\\|").replaceAll("~", "\\~")*/.replaceAll("@", "@ ") // pasted myself
+    queue.forEach(a => msg += `${a.text.trim()}${a.count > 1 ? ` (x${a.count})` : ""}\n`); queue = big ? oqueue : []; oqueue = []; msg = msg.replaceAll("_", "\\_")/*.replaceAll("*", "\\*").replaceAll("`", "\\`").replaceAll("|", "\\|").replaceAll("~", "\\~")*/.replaceAll("@", "@ ") // pasted myself
     dclient.channels.cache.get(config.channels.console).send({content: `${msg}`}).catch(err => console.log(`[discord] error sending to console: ${err}`))
 }, 2000)
 
