@@ -2,19 +2,19 @@ require("gwsockets")
 
 util.AddNetworkString("LRELAYS:Message")
 
-local socket = LRELAY.socket and LRELAY.socket or GWSockets.createWebSocket(LRELAY.socketPath)
-if    socket ~= LRELAY.socket then LRELAY.socket = socket socket:open() else print("[LRelay] Script updated, using previos connection") end
+local socket = LRELAY.socket or GWSockets.createWebSocket(LRELAY.socketPath)
+if    socket ~= LRELAY.socket then LRELAY.socket = socket socket:setHeader("authorization", LRELAY.token) socket:open() else print("[LRelay] Script updated, using previos connection") end
 
 LRELAY.SendMessage = function(content)
-    if socket:isConnected() then socket:write(util.TableToJSON({type = "message", message = content, token = LRELAY.token})) end
+    if socket:isConnected() then socket:write(util.TableToJSON({type = "message", message = content})) end
 end
 
 LRELAY.SendToConsole = function(content)
-    if socket:isConnected() then socket:write(util.TableToJSON({type = "console", message = utf8.force(content), token = LRELAY.token})) end
+    if socket:isConnected() then socket:write(util.TableToJSON({type = "console", message = utf8.force(content)})) end
 end
 
 LRELAY.SendStatus = function(uptime, players, map, ip, name)
-    if socket:isConnected() then socket:write(util.TableToJSON({type = "status", name = LRELAY.statusName, uptime = uptime or 0, players = players or {}, map = map or "gm_bigcity_improved", ip = ip or game.GetIPAddress() or "unknown ip", hostname = name or "no name", token = LRELAY.token})) end
+    if socket:isConnected() then socket:write(util.TableToJSON({type = "status", name = LRELAY.statusName, uptime = uptime or 0, players = players or {}, map = map or "gm_bigcity_improved", ip = ip or game.GetIPAddress() or "unknown ip", hostname = name or "no name"})) end
 end
 
 -- pasted from original LRelay written by me (Lenofag-2000)

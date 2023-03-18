@@ -11,8 +11,9 @@ var expressWS = require('express-ws')(app)
 var wssrelay = expressWS.getWss("/relay")
 
 var checkAuth = (t) => {
-    config.auth.forEach(token => {if(token == t) return true})
-    return false
+    var ret = false
+    config.auth.forEach(token => {if(token == t) ret = true})
+    return ret
 }
 
 var queue = []
@@ -20,6 +21,11 @@ var status = {}
 
 app.ws("/relay", (ws) => {
     var goodip = `${ws._socket.remoteAddress.slice(7)}:${ws._socket.remotePort}`
+    if(!req.headers.authorization || !checkAuth(req.headers.authorization)) {
+        console.log(`[express] rejected ${goodip} (not authorized)`)
+        ws.send(JSON.stringify({error: "auth", details: `invalid token`}))
+        return ws.close(4401)
+    }
     console.log(`[express] connected with ${goodip}`)
     ws.on("message", msg => {
         var parsed;
@@ -27,7 +33,6 @@ app.ws("/relay", (ws) => {
             parsed = JSON.parse(msg);
         } catch(err) {ws.send(JSON.stringify({error: "parse", details: `${err}`})); return console.log(`[express] JSON.parse errored: ${err}`)}
 
-        if(!parsed.token || checkAuth(parsed.token)) return ws.send(JSON.stringify({error: "auth", details: `invalid token`}));
         switch(parsed.type) {
             case "message":
                 if(!parsed.message) return ws.send(JSON.stringify({error: "message", details: `invalid message`}));
@@ -56,14 +61,15 @@ app.ws("/relay", (ws) => {
             break
             case "status":
                 if(!parsed.name || typeof parsed.name != "string" || parsed.name.trim() == "") return ws.send(JSON.stringify({error: "status", details: `invalid name`}));
-                var sdata = {}
-                sdata.uptime = parsed.uptime ?? 0
-                sdata.players = parsed.players ?? []
-                sdata.map = parsed.map ?? "unknown"
-                sdata.ip = parsed.ip ?? "unknown"
-                sdata.name = parsed.hostname ?? "unknown"
-                sdata.lastupdate = Date.now()
-                status[parsed.name] = sdata
+
+                status[parsed.name] = {
+                    uptime: parsed.uptime ?? 0,
+                    players: parsed.players ?? [],
+                    map: parsed.map ?? "unknown",
+                    ip: parsed.ip ?? "unknown",
+                    name: parsed.hostname ?? "unknown",
+                    lastupdate: Date.now()
+                }
             break
         }
     })
@@ -78,7 +84,7 @@ setInterval(() => {
     var oqueue = queue; var big = false;
     var msg = "";
     if(queue.length >= 16) {var a = [...pastedChunking(queue, 8)]; queue = a[0]; oqueue = oqueue.slice(8); big = true};
-    queue.forEach(a => msg += `${a.text.trim()}${a.count > 1 ? ` (x${a.count})` : ""}\n`); queue = big ? oqueue : []; oqueue = []; msg = msg.replaceAll("_", "\\_")/*.replaceAll("*", "\\*").replaceAll("`", "\\`").replaceAll("|", "\\|").replaceAll("~", "\\~")*/.replaceAll("@", "@ ") // pasted myself
+    queue.forEach(a => msg += `${a.text.trim()}${a.count > 1 ? ` (x${a.count})` : ""}\n`); queue = big ? oqueue : []; oqueue = []; msg = msg.replaceAll("@", "@\u200b")/*.replaceAll("_", "\u200b_").replaceAll("*", "\\*").replaceAll("`", "\\`").replaceAll("|", "\\|").replaceAll("~", "\\~")*/ // pasted myself
     dclient.channels.cache.get(config.channels.console).send({content: `${msg}`}).catch(err => console.log(`[discord] error sending to console: ${err}`))
 }, 2000)
 
