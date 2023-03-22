@@ -16,7 +16,7 @@ var status = {}
 var serversws = {}
 var inforequests = []
 
-app.ws("/relay", (ws) => {
+app.ws("/relay", (ws, req) => {
     var goodip = `${ws._socket.remoteAddress.slice(7)}:${ws._socket.remotePort}`, selfname;
 
     if(!req.headers.authorization || !utils.checkAuth(req.headers.authorization)) {
@@ -114,16 +114,21 @@ app.get("/player/:server/:part", (req, res) => {
     var server = req.params.server; if(!server || typeof server != "string" || server.trim() == "" || !serversws[server]) return res.status(400).json({error: "playerinfo", details: "invalid server"})
     var part = req.params.part; if(!part || typeof part != "string" || part.trim() == "") return res.status(400).json({error: "playerinfo", details: "invalid part (steamid/url/customurl)"})
 
+    var tm, steamid;
     utils.fetchSteamID(part)
-        .then(steamid => {
+        .then(tsteamid => {
+            steamid = tsteamid
             if(playercached[steamid.getSteamID64()]) return res.status(200).json(playercached[steamid.getSteamID64()]);
             if(inforequests[steamid.getSteam2RenderedID()]) return res.status(429).json({error: "playerinfo", details: "request already in progress"})
             console.log(`[express] requesting from "${server}" - "${part}"`)
 
             serversws[server].send(JSON.stringify({type: "inforequest", steamid: steamid.getSteam2RenderedID()}))
-            var tm = setTimeout(() => {res.status(408).json({error: "playerinfo", details: "server did not respond"}); delete inforequests[steamid.getSteam2RenderedID()]}, 2500)
+            tm = setTimeout(() => {res.status(408).json({error: "playerinfo", details: "server did not respond"}); delete inforequests[steamid.getSteam2RenderedID()]}, 2500)
             inforequests[steamid.getSteam2RenderedID()] = info => {
-                clearTimeout(tm)
+                clearTimeout(tm); delete inforequests[steamid.getSteam2RenderedID()]
+                setTimeout(() => delete playercached[steamid.getSteamID64()], 15000)
+                // prevents spamming with invalid users
+                playercached[steamid.getSteamID64()] = {error: "playerinfo", details: "not found"}
                 if(info.notfound) return res.status(404).json({error: "playerinfo", details: "not found"})
                 var ninfo = {
                     avatar: info.avatar ?? "https://lenofag.ru/files/image/invalid_pfp.png", // spooky iplogger
@@ -133,7 +138,8 @@ app.get("/player/:server/:part", (req, res) => {
                     steamid: steamid.getSteam2RenderedID(),
                     playing: info.playing ?? false,
                     lastjoined: info.lastjoined ?? Math.floor(Date.now() / 1000),
-                    totaltime: info.totaltime ?? 0
+                    totaltime: info.totaltime ?? 0,
+                    ban: info.ban ?? false
                 }
 
                 res.status(200).json(ninfo)
@@ -142,7 +148,11 @@ app.get("/player/:server/:part", (req, res) => {
                 setTimeout(() => delete playercached[steamid.getSteamID64()], 15000)
             }
         })
-        .catch(err => res.status(500).json({error: "playerinfo", details: `${err}`}))
+        .catch(err => {
+            res.status(500).json({error: "playerinfo", details: `${err}`})
+            if(tm) clearTimeout(tm)
+            if(tsteamid && inforequests[tsteamid.getSteam2RenderedID()]) delete inforequests[tsteamid.getSteam2RenderedID()]
+        })
 })
 
 app.listen(config.port, () => {
