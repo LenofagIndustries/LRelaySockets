@@ -109,16 +109,23 @@ function socket:onMessage(msg)
                     local lj, tt = 0, 0 -- You can replace this with your server's session time addon (currently uses UTime)
                     if sql.TableExists("utime") then
                         local a = sql.QueryRow("SELECT totaltime, lastvisit FROM utime WHERE player = " .. util.SteamIDTo64(steamid))
-                        if a then lj, tt = a.lastvisit or 0, a.totaltime or 0 end
+                        if a then lj, tt = tonumber(a.lastvisit) or 0, tonumber(a.totaltime) or 0 end
                     end
 
+                    local ban = ULib.bans[steamid]
                     socket:write(util.TableToJSON({type = "inforequest", id = steamid, info = {
                         avatar = pfp,
                         group = ulxus.group,
                         name = ulxus.name,
                         playing = IsValid(player.GetBySteamID(steamid)),
                         lastjoined = lj,
-                        totaltime = tt
+                        totaltime = tt,
+                        ban = (ban and {
+                            admin = ban.modified_admin or ban.admin or "(Console)",
+                            reason = ban.reason or "(unknown reason)",
+                            start = ban.time or 0,
+                            unban = ban.unban or 0
+                        } or false)
                     }}))
                 end)
             else socket:write(util.TableToJSON({type = "inforequest", id = steamid, info = {notfound = true}})) end
