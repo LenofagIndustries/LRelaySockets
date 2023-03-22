@@ -5,6 +5,10 @@ util.AddNetworkString("LRELAYS:Message")
 local socket = LRELAY.socket or GWSockets.createWebSocket(LRELAY.socketPath)
 if    socket ~= LRELAY.socket then LRELAY.socket = socket socket:setHeader("authorization", LRELAY.token) socket:open() else print("[LRelay] Script updated, using previos connection") end
 
+LRELAY.Identify = function()
+    if socket:isConnected() then socket:write(util.TableToJSON({type = "identify", name = LRELAY.statusName})) end
+end
+
 LRELAY.SendMessage = function(content)
     if socket:isConnected() then socket:write(util.TableToJSON({type = "message", message = content})) end
 end
@@ -19,25 +23,28 @@ end
 
 -- pasted from original LRelay written by me (Lenofag-2000)
 LRELAY.avatars = LRELAY.avatars or {INVALID = "https://lenofag.ru/files/image/invalid_pfp.png"}
+LRELAY.FetchAvatar = function(steamid, isbot, callback, nocache)
+    if isbot then return callback(LRELAY.avatars.INVALID) end
+    if not nocache and LRELAY.avatars[steamid] then return callback(LRELAY.avatars[steamid]) end
+
+    print(string.format("[LRelay] Fetching avatar of %s...", steamid))
+    http.Fetch("https://steamcommunity.com/profiles/" .. util.SteamIDTo64(steamid) .. "?xml=1", function(body)
+        local da = string.match(body, "https://avatars.akamai.steamstatic.com/[/A-z0-9%-_%.,%(%)]+_full.jpg")
+        if not da or da == "" then
+            LRELAY.avatars[steamid] = LRELAY.avatars.INVALID
+            print(string.format("[LRelay] Avatar of %s does not exist", steamid))
+            callback(LRELAY.avatars.INVALID)
+        else
+            LRELAY.avatars[steamid] = da
+            print(string.format("[LRelay] Avatar of %s fetched: %s", steamid, da))
+            callback(da)
+        end
+    end, function() callback(LRELAY.avatars.INVALID) print(string.format("[LRelay] Failed to fetch %s avatar!", steamid)) end)
+end
+
 gameevent.Listen("player_connect")
 hook.Add("player_connect", "LRELAYS:ConnectMSG", function(data)
-    local pfp = LRELAY.avatars[data.networkid] or LRELAY.avatars.INVALID
-
-    if data.bot == 0 and pfp == LRELAY.avatars.INVALID then
-        http.Fetch("https://steamcommunity.com/profiles/" .. util.SteamIDTo64(data.networkid) .. "?xml=1", function(body)
-            local da = string.match(body, "https://avatars.akamai.steamstatic.com/[/A-z0-9%-_%.,%(%)]+_full.jpg")
-            print(da)
-            if not da or da == "" then
-                LRELAY.avatars[data.networkid] = LRELAY.avatars.INVALID
-                pfp = LRELAY.avatars.INVALID
-            else
-                LRELAY.avatars[data.networkid] = da
-                pfp = da
-            end
-        end, function() LRELAY.avatars[data.networkid] = LRELAY.avatars.INVALID pfp = LRELAY.avatars.INVALID end)
-    end
-
-    timer.Simple(1, function()
+    LRELAY.FetchAvatar(data.networkid, data.bot == 1, function(pfp)
         LRELAY.SendMessage({
             embed = {
                 author = {
@@ -85,13 +92,42 @@ function socket:onMessage(msg)
     if not msg then return end
 
     local a = util.JSONToTable(msg)
-    if a and a.type == "message" then
-        print(string.format("[LRelay] Message - %s: %s", a.author.name, a.content))
-        net.Start("LRELAYS:Message")
-        net.WriteString(msg)
-        net.Broadcast()
+    if a then -- Return true to "LRelayS:Message" hook to prevent sending to players
+        if not hook.Run("LRelayS:Message", socket, a or msg) and a.type == "message" then
+            print(string.format("[LRelay] Message - %s: %s", a.author.name, a.content))
+            net.Start("LRELAYS:Message")
+            net.WriteString(msg)
+            net.Broadcast()
+        end
+
+        -- Player info requests only works with ULib (ULX)!
+        if a.type == "inforequest" and ULib then
+            local steamid = a.steamid
+            local ulxus = ULib.ucl.users[steamid]
+            if ulxus then
+                LRELAY.FetchAvatar(steamid, false, function(pfp)
+                    local lj, tt = 0, 0 -- You can replace this with your server's session time addon (currently uses UTime)
+                    if sql.TableExists("utime") then
+                        local a = sql.QueryRow("SELECT totaltime, lastvisit FROM utime WHERE player = " .. util.SteamIDTo64(steamid))
+                        if a then lj, tt = a.lastvisit or 0, a.totaltime or 0 end
+                    end
+
+                    socket:write(util.TableToJSON({type = "inforequest", id = steamid, info = {
+                        avatar = pfp,
+                        group = ulxus.group,
+                        name = ulxus.name,
+                        playing = IsValid(player.GetBySteamID(steamid)),
+                        lastjoined = lj,
+                        totaltime = tt
+                    }}))
+                end)
+            else socket:write(util.TableToJSON({type = "inforequest", id = steamid, info = {notfound = true}})) end
+        end
+
+        if a.error then
+            print(string.format("[LRelay] Received \"%s\" error: %s", a.error, a.details))
+        end
     end
-    if a then hook.Run("LRelayS:Message", socket, a or msg) end
 end
 
 function socket:onError(msg)
@@ -101,6 +137,8 @@ end
 
 function socket:onConnected()
     print("[LRelay] Connected successfully!")
+
+    LRELAY.Identify() -- Identifies your server for WebAPI routes (uses LRELAY.statusName)
 
     if not LRELAY.FirstConnect then
         LRELAY.FirstConnect = true

@@ -8,11 +8,13 @@ Integrate your Garry's Mod server with Discord
 ### What this relay can do:
 * [Connect](images/chatrelay.png) your Discord and game's chats
 * Send [console](images/console.png) output to Discord and run console commands
-* [Server status web API](images/statusapi.png)
+* [Server status](images/statusapi.png) and player info Web API
 * Lua API - make your own Discord commands
 
 ## Dependencies
 ### node.js
+- axios@0.27.2
+- steamid@2.0.0
 - discord.js@13.6.0
 - express@4.17.3
 - express-ws@5.0.2
@@ -45,4 +47,4 @@ Integrate your Garry's Mod server with Discord
 
 #
 ##### This relay is created specifically for **Sandbox** gamemode!
-##### You will need to modify it yourself to make it work better for DarkRP or TTT
+##### You will need to modify it yourself to make it work for DarkRP, TTT, etc
