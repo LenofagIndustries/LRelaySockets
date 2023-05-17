@@ -29,7 +29,7 @@ LRELAY.FetchAvatar = function(steamid, isbot, callback, nocache)
 
     print(string.format("[LRelay] Fetching avatar of %s...", steamid))
     http.Fetch("https://steamcommunity.com/profiles/" .. util.SteamIDTo64(steamid) .. "?xml=1", function(body)
-        local da = string.match(body, "https://avatars.akamai.steamstatic.com/[/A-z0-9%-_%.,%(%)]+_full.jpg")
+        local da = string.match(body, "https://avatars.[A-z]+.steamstatic.com/[/A-z0-9%-_%.,%(%)]+_full.jpg")
         if not da or da == "" then
             LRELAY.avatars[steamid] = LRELAY.avatars.INVALID
             print(string.format("[LRelay] Avatar of %s does not exist", steamid))
