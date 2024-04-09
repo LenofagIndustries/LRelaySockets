@@ -14,7 +14,7 @@
         "axios": "0.28.0",
         "steamid": "2.0.0",
         "discord.js": "13.6.0",
-        "express": "4.17.3",
+        "express": "4.19.2",
         "express-ws": "5.0.2"
     },
     "author": "lenofag.ru",
