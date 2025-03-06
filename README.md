@@ -12,13 +12,6 @@ Integrate your Garry's Mod server with Discord
 * Lua API - make your own Discord commands
 
 ## Dependencies
-### node.js
-- axios@0.27.2
-- steamid@2.0.0
-- discord.js@13.6.0
-- express@4.17.3
-- express-ws@5.0.2
-
 ### Garry's Mod
 - [GWSockets](https://github.com/FredyH/GWSockets) by FredyH ([downloads](https://github.com/FredyH/GWSockets/releases))
 - [gm_spew](https://github.com/danielga/gm_spew) by danielga ([downloads](https://github.com/danielga/gm_spew/releases))
